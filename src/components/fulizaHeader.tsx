@@ -3,7 +3,7 @@ import { Zap } from 'lucide-react';
 
 const FulizaHeader: React.FC = () => {
   return (
-    <div className="mx-[70px] bg-gradient-to-r from-fuliza-dark to-fuliza-green p-8 rounded-2xl shadow-2xl">
+    <div className="mx-[5px] bg-gradient-to-r from-fuliza-dark to-fuliza-green p-8 rounded-2xl shadow-2xl">
       {/* Header with Icon + Title + Verification Line */}
       <div className="flex flex-col items-center gap-3 mb-6">
         <Zap className="text-fuliza-gold w-12 h-12" />
