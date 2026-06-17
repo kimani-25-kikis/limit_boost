@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useState } from 'react';           // ← Removed React import
 import FulizaHeader from './components/fulizaHeader';
 import HowItWorks from './components/HowItWorks';
 import LimitSectionHeader from './components/LimitSectionHeader';
@@ -6,7 +7,6 @@ import LimitGrid from './components/LimitGrid';
 import SelectionFooter from './components/SelectionFooter';
 import PaymentModal from './components/PaymentModal';
 import RecentActivity from './components/RecentActivity';
-//import StepsIndicator from './components/StepsIndicator';
 
 const limits = [
   { amount: 3000, fee: 150 },
@@ -26,30 +26,26 @@ const limits = [
 function App() {
   const [selectedLimit, setSelectedLimit] = useState<number | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [currentStep, setCurrentStep] = useState<'selection' | 'payment' | 'activation'>('selection');
 
   const handleSelectLimit = (amount: number) => {
     setSelectedLimit(amount);
-    setCurrentStep('selection');
   };
 
   const handleGetLimit = () => {
     if (selectedLimit) {
-      setCurrentStep('payment');
       setShowPaymentModal(true);
     }
   };
 
   const handleReset = () => {
     setSelectedLimit(null);
-    setCurrentStep('selection');
   };
 
   const handlePay = (data: { idNumber: string; phoneNumber: string }) => {
     console.log('Payment data:', data);
-    setCurrentStep('activation');
     setShowPaymentModal(false);
     alert('✅ Payment initiated! Check your phone for M-Pesa STK push.');
+    // You can add more logic here later (e.g., show success screen)
   };
 
   const selectedLimitData = selectedLimit 
@@ -69,7 +65,7 @@ function App() {
           {/* How it works */}
           <HowItWorks />
           
-          {/* Recent Activity - Now right after How it works */}
+          {/* Recent Activity */}
           <div className="mb-6">
             <RecentActivity />
           </div>
@@ -80,11 +76,6 @@ function App() {
           {/* Limit Selection Section */}
           <LimitSectionHeader />
           
-          {/* Steps Indicator */}
-          {/* <div className="mb-6">
-            <StepsIndicator currentStep={currentStep} />
-          </div> */}
-
           {/* Limit Grid */}
           <LimitGrid
             limits={limits}
@@ -107,7 +98,6 @@ function App() {
             fee={selectedLimitData.fee}
             onClose={() => {
               setShowPaymentModal(false);
-              setCurrentStep('selection');
             }}
             onPay={handlePay}
           />
