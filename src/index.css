@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* Custom colors for Fuliza */
+@theme {
+  --color-fuliza-green: #1B8C3B;
+  --color-fuliza-dark: #0F3D2A;
+  --color-fuliza-gold: #F5A623;
+  --color-fuliza-light: #F0F9F0;
+}
+
+@plugin "daisyui" {
+  themes: light --default, cupcake, retro, aqua, cyberpunk;
+}
+
+/* Custom font and base styles */
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom animations */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom scrollbar for the grid */
+.overflow-custom::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-custom::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.overflow-custom::-webkit-scrollbar-thumb {
+  background: var(--color-fuliza-green);
+  border-radius: 10px;
+}
+
+.overflow-custom::-webkit-scrollbar-thumb:hover {
+  background: var(--color-fuliza-dark);
+}
