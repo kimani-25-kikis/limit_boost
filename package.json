@@ -18,7 +18,7 @@
     "daisyui": "^5.5.23",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "lucide-react": "^1.20.0",
+    "lucide-react": "^1.23.0",
     "paystack": "^2.0.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
