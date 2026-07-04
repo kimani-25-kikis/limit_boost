@@ -24,6 +24,16 @@ const limits = [
 ];
 
 function App() {
+
+  const checkBackend = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/health`);
+    const data = await response.json();
+    console.log('Backend says:', data);
+  } catch (error) {
+    console.error('Backend not reachable:', error);
+  }
+};
   const [selectedLimit, setSelectedLimit] = useState<number | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
