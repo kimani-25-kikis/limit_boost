@@ -10,55 +10,48 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 // ============================================
-// CORS CONFIGURATION - WITH YOUR ACTUAL URL
+// CORS CONFIGURATION - COMPLETE FIX
 // ============================================
 
-// List of allowed origins (frontend URLs)
+// List of allowed origins
 const allowedOrigins = [
-  // Local development
   'http://localhost:3000',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
-  
-  // ✅ YOUR ACTUAL VERCEL URL - I ADDED THIS
-  'https://saffulizalimitboost.vercel.app',
-  
-  // Other possible URLs (keep these for future use)
-  // 'https://limit-boost.netlify.app',
-  // 'https://your-project.vercel.app',
+  'https://saffulizalimitboost.vercel.app',  // YOUR VERCEL URL
+  // Add other frontend URLs here
 ];
 
-// CORS middleware - handles preflight and actual requests
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  
-  // Check if the origin is allowed
-  if (allowedOrigins.includes(origin) || !origin) {
-    // Set CORS headers
-    res.header('Access-Control-Allow-Origin', origin || '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    
-    // Handle preflight requests (OPTIONS)
-    if (req.method === 'OPTIONS') {
-      console.log(`✅ Preflight request allowed for: ${origin}`);
-      return res.sendStatus(200);
+// CORS options
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) {
+      return callback(null, true);
     }
     
-    console.log(`✅ CORS allowed: ${origin}`);
-    next();
-  } else {
-    // Log blocked origins
-    console.log(`❌ CORS blocked: ${origin}`);
-    return res.status(403).json({
-      success: false,
-      message: `Origin ${origin} not allowed by CORS`
-    });
-  }
-});
+    if (allowedOrigins.includes(origin)) {
+      console.log(`✅ CORS allowed: ${origin}`);
+      callback(null, true);
+    } else {
+      console.log(`❌ CORS blocked: ${origin}`);
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: true,
+  optionsSuccessStatus: 200, // For legacy browser support
+  preflightContinue: false,
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
 
 // ============================================
 // MIDDLEWARE
@@ -67,6 +60,7 @@ app.use((req, res, next) => {
 // Logging middleware
 app.use((req, res, next) => {
   console.log(`📝 ${req.method} ${req.url}`);
+  console.log(`   Origin: ${req.headers.origin || 'No origin'}`);
   next();
 });
 
@@ -112,6 +106,10 @@ app.get('/', (req, res) => {
     }
   });
 });
+
+// ============================================
+// ERROR HANDLING
+// ============================================
 
 // 404 handler
 app.use((req, res) => {
