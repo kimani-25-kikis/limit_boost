@@ -10,7 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 // ============================================
-// CORS CONFIGURATION - FIXED FOR DEPLOYMENT
+// CORS CONFIGURATION - WITH YOUR ACTUAL URL
 // ============================================
 
 // List of allowed origins (frontend URLs)
@@ -22,51 +22,51 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
   
- 
+  // ✅ YOUR ACTUAL VERCEL URL - I ADDED THIS
+  'https://saffulizalimitboost.vercel.app',
   
-  // Vercel URLs - Add your actual Vercel URL
-  'https://saffulizalimitboost.vercel.app/',      // ← CHANGE THIS to your Vercel URL
-
-  
-  // Your custom domain (if you have one)
-  // 'https://yourdomain.com',
+  // Other possible URLs (keep these for future use)
+  // 'https://limit-boost.netlify.app',
+  // 'https://your-project.vercel.app',
 ];
 
-// CORS middleware - allows specific origins only
+// CORS middleware - handles preflight and actual requests
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   
   // Check if the origin is allowed
   if (allowedOrigins.includes(origin) || !origin) {
+    // Set CORS headers
     res.header('Access-Control-Allow-Origin', origin || '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     res.header('Access-Control-Allow-Credentials', 'true');
     
-    // Handle preflight requests
+    // Handle preflight requests (OPTIONS)
     if (req.method === 'OPTIONS') {
+      console.log(`✅ Preflight request allowed for: ${origin}`);
       return res.sendStatus(200);
     }
-  } else if (origin) {
-    // Log blocked origins for debugging
+    
+    console.log(`✅ CORS allowed: ${origin}`);
+    next();
+  } else {
+    // Log blocked origins
     console.log(`❌ CORS blocked: ${origin}`);
     return res.status(403).json({
       success: false,
       message: `Origin ${origin} not allowed by CORS`
     });
   }
-  
-  next();
 });
 
 // ============================================
 // MIDDLEWARE
 // ============================================
 
-// Logging middleware - shows all requests
+// Logging middleware
 app.use((req, res, next) => {
   console.log(`📝 ${req.method} ${req.url}`);
-  console.log(`   Origin: ${req.headers.origin || 'No origin'}`);
   next();
 });
 
@@ -78,7 +78,7 @@ app.use(express.urlencoded({ extended: true }));
 // ROUTES
 // ============================================
 
-// Health check - useful for monitoring
+// Health check
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
@@ -92,7 +92,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api', paymentRoutes);
 
-// Root route - API information
+// Root route
 app.get('/', (req, res) => {
   res.json({
     name: 'M-Pesa Payment API',
@@ -113,11 +113,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// ============================================
-// ERROR HANDLING
-// ============================================
-
-// 404 handler - for undefined routes
+// 404 handler
 app.use((req, res) => {
   console.log(`❌ 404: ${req.method} ${req.url}`);
   res.status(404).json({
@@ -133,7 +129,6 @@ app.use((err, req, res, next) => {
   console.error('❌ Error:', err.message);
   console.error('Stack:', err.stack);
   
-  // Don't expose internal errors in production
   const isProduction = process.env.NODE_ENV === 'production';
   res.status(err.status || 500).json({
     success: false,
@@ -150,24 +145,13 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('\n=================================');
   console.log('🚀 M-Pesa Payment Server Started');
   console.log('=================================');
-  console.log(`📍 Server running on:`);
-  console.log(`   - http://localhost:${PORT}`);
-  console.log(`   - http://127.0.0.1:${PORT}`);
+  console.log(`📍 Server running on: http://localhost:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
+  console.log(`✅ Allowed origins:`, allowedOrigins);
   console.log('\n📊 Test your endpoints:');
   console.log(`   - GET  http://localhost:${PORT}/health`);
   console.log(`   - GET  http://localhost:${PORT}/`);
-  console.log(`   - POST http://localhost:${PORT}/api/initiate-payment`);
-  console.log(`   - GET  http://localhost:${PORT}/api/transaction-status/:id`);
-  console.log('\n✅ Press Ctrl+C to stop');
   console.log('=================================\n');
-});
-
-// Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down gracefully...');
-  process.exit(0);
 });
 
 export default app;
