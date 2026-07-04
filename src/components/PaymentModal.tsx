@@ -44,9 +44,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     amountPaid: null,
     resultDesc: null
   });
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
+  const pollingIntervalRef = useRef<number | null>(null);
+const timeoutRef = useRef<number | null>(null);
   useEffect(() => {
     return () => {
       if (pollingIntervalRef.current) {
