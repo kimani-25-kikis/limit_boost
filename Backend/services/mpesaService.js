@@ -6,7 +6,7 @@ class MpesaService {
   constructor() {
     this.accessToken = null;
     this.tokenExpiry = null;
-    console.log('✅ M-Pesa Service initialized with REAL credentials');
+    console.log('✅ M-Pesa Service initialized');
   }
 
   async getAccessToken() {
@@ -17,7 +17,7 @@ class MpesaService {
       }
 
       console.log('🔑 Getting new access token...');
-      
+
       const auth = Buffer.from(
         `${config.consumerKey}:${config.consumerSecret}`
       ).toString('base64');
@@ -31,14 +31,10 @@ class MpesaService {
         }
       );
 
-      console.log('✅ Access token response received');
-      
       this.accessToken = response.data.access_token;
       this.tokenExpiry = Date.now() + 55 * 60 * 1000;
 
       console.log('✅ Access token obtained successfully');
-      console.log('📝 Token:', this.accessToken.substring(0, 20) + '...');
-      
       return this.accessToken;
     } catch (error) {
       console.error('❌ Error getting access token:', error.response?.data || error.message);
@@ -48,13 +44,13 @@ class MpesaService {
 
   formatPhoneNumber(phoneNumber) {
     let cleaned = phoneNumber.replace(/\D/g, '');
-    
+
     if (cleaned.startsWith('0')) {
       cleaned = '254' + cleaned.substring(1);
     } else if (cleaned.startsWith('7') || cleaned.startsWith('1')) {
       cleaned = '254' + cleaned;
     }
-    
+
     console.log('📱 Formatted phone:', cleaned);
     return cleaned;
   }
@@ -64,27 +60,36 @@ class MpesaService {
       const token = await this.getAccessToken();
       const formattedPhone = this.formatPhoneNumber(phoneNumber);
       const timestamp = this.getTimestamp();
-      
+
+      // Read directly from config (No hardcoded 4035440 fallbacks)
+      const storeNumber = config.storeNumber || config.shortCode;
+      const tillNumber = config.shortCode;
+
       const password = Buffer.from(
-        `${config.shortCode}${config.passkey}${timestamp}`
+        `${storeNumber}${config.passkey}${timestamp}`
       ).toString('base64');
 
       console.log('📝 Timestamp:', timestamp);
-      console.log('🔑 Shortcode:', config.shortCode);
-      console.log('🔐 Password:', password.substring(0, 20) + '...');
+      console.log('🔑 BusinessShortCode (Store):', storeNumber);
+      console.log('🔑 PartyB (Till Number):', tillNumber);
+
+      // Sanitize AccountReference to max 12 alphanumeric chars
+      const sanitizedRef = (accountReference || 'CyberPay')
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .substring(0, 12);
 
       const requestBody = {
-        BusinessShortCode: config.shortCode,
+        BusinessShortCode: storeNumber,
         Password: password,
         Timestamp: timestamp,
-        TransactionType: 'CustomerPayBillOnline',
+        TransactionType: 'CustomerBuyGoodsOnline',
         Amount: Math.round(amount),
         PartyA: formattedPhone,
-        PartyB: config.shortCode,
+        PartyB: tillNumber,
         PhoneNumber: formattedPhone,
         CallBackURL: config.callbackUrl,
-        AccountReference: accountReference || 'FulizaPayment',
-        TransactionDesc: transactionDesc || 'Payment for limit upgrade',
+        AccountReference: sanitizedRef || 'CyberPay',
+        TransactionDesc: transactionDesc || 'Cyber service payment',
       };
 
       console.log('📤 Sending STK Push to M-Pesa...');
@@ -92,16 +97,12 @@ class MpesaService {
       console.log('💰 Amount:', amount);
       console.log('🔗 Callback URL:', config.callbackUrl);
 
-      // IMPORTANT: Make sure the token is properly formatted with "Bearer " prefix
-      const authHeader = `Bearer ${token}`;
-      console.log('🔑 Auth Header:', authHeader.substring(0, 30) + '...');
-
       const response = await axios.post(
         `${config.baseUrl}/mpesa/stkpush/v1/processrequest`,
         requestBody,
         {
           headers: {
-            'Authorization': authHeader,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         }
@@ -127,7 +128,7 @@ class MpesaService {
       } else {
         console.error('❌ Error:', error.message);
       }
-      
+
       return {
         success: false,
         error: error.response?.data || error.message,
@@ -141,13 +142,15 @@ class MpesaService {
     try {
       const token = await this.getAccessToken();
       const timestamp = this.getTimestamp();
-      
+
+      const storeNumber = config.storeNumber || config.shortCode;
+
       const password = Buffer.from(
-        `${config.shortCode}${config.passkey}${timestamp}`
+        `${storeNumber}${config.passkey}${timestamp}`
       ).toString('base64');
 
       const requestBody = {
-        BusinessShortCode: config.shortCode,
+        BusinessShortCode: storeNumber,
         Password: password,
         Timestamp: timestamp,
         CheckoutRequestID: checkoutRequestId,
@@ -191,7 +194,7 @@ class MpesaService {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    
+
     return `${year}${month}${day}${hours}${minutes}${seconds}`;
   }
 }
